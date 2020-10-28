@@ -5,9 +5,9 @@ class Header extends Component {
   render() {
     return (
       <header>
-
-          <Link to="/"></Link>
-
+        <div className="Navbar">
+          <Link to="/camera">Video Camera</Link>
+        </div>
       </header>
     );
   }

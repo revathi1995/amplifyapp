@@ -6,6 +6,7 @@ class DrawBox extends Component {
     this.state = {
       descriptors: null,
       detections: null,
+      match: null
     };
   }
 
@@ -18,7 +19,7 @@ class DrawBox extends Component {
   }
 
   getDescription = async (props = this.props) => {
-    const { fullDesc} = props;
+    const { fullDesc } = props;
     if (!!fullDesc) {
       await this.setState({
         descriptors: fullDesc.map(fd => fd.descriptor),
@@ -56,6 +57,7 @@ class DrawBox extends Component {
                 transform: `translate(${_X}px,${_Y}px)`
               }}
             >
+
             </div>
           </div>
         );
