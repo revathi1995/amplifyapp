@@ -1,28 +1,34 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import { loadModels, getFullFaceDescription } from '../api/face';
-import DrawBox from '../components/drawBox';
+import { loadModels, getFullFaceDescription, createMatcher } from '../api/face';
 
+// Import face profile
+const JSON_PROFILE = require('../descriptors/bnk48.json');
 
 const WIDTH = 420;
 const HEIGHT = 420;
 const inputSize = 160;
 
-class CameraFaceDetect extends Component {
+class VideoInput extends Component {
   constructor(props) {
     super(props);
     this.webcam = React.createRef();
     this.state = {
       fullDesc: null,
+      detections: null,
+      descriptors: null,
+      faceMatcher: null,
+      match: null,
       facingMode: null
     };
   }
 
-  componentWillMount() {
-    loadModels();
+  componentWillMount = async () => {
+    await loadModels();
+    this.setState({ faceMatcher: await createMatcher(JSON_PROFILE) });
     this.setInputDevice();
-  }
+  };
 
   setInputDevice = () => {
     navigator.mediaDevices.enumerateDevices().then(async devices => {
@@ -57,12 +63,26 @@ class CameraFaceDetect extends Component {
       await getFullFaceDescription(
         this.webcam.current.getScreenshot(),
         inputSize
-      ).then(fullDesc => this.setState({ fullDesc }));
+      ).then(fullDesc => {
+        if (!!fullDesc) {
+          this.setState({
+            detections: fullDesc.map(fd => fd.detection),
+            descriptors: fullDesc.map(fd => fd.descriptor)
+          });
+        }
+      });
+
+      if (!!this.state.descriptors && !!this.state.faceMatcher) {
+        let match = await this.state.descriptors.map(descriptor =>
+          this.state.faceMatcher.findBestMatch(descriptor)
+        );
+        this.setState({ match });
+      }
     }
   };
 
   render() {
-    const { fullDesc, facingMode } = this.state;
+    const { detections, match, facingMode } = this.state;
     let videoConstraints = null;
     let camera = '';
     if (!!facingMode) {
@@ -76,6 +96,46 @@ class CameraFaceDetect extends Component {
       } else {
         camera = 'Back';
       }
+    }
+
+    let drawBox = null;
+    if (!!detections) {
+      drawBox = detections.map((detection, i) => {
+        let _H = detection.box.height;
+        let _W = detection.box.width;
+        let _X = detection.box._x;
+        let _Y = detection.box._y;
+        return (
+          <div key={i}>
+            <div
+              style={{
+                position: 'absolute',
+                border: 'solid',
+                borderColor: 'blue',
+                height: _H,
+                width: _W,
+                transform: `translate(${_X}px,${_Y}px)`
+              }}
+            >
+              {!!match && !!match[i] ? (
+                <p
+                  style={{
+                    backgroundColor: 'blue',
+                    border: 'solid',
+                    borderColor: 'blue',
+                    width: _W,
+                    marginTop: 0,
+                    color: '#fff',
+                    transform: `translate(-3px,${_H}px)`
+                  }}
+                >
+                  {match[i]._label}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        );
+      });
     }
 
     return (
@@ -107,13 +167,7 @@ class CameraFaceDetect extends Component {
                 />
               </div>
             ) : null}
-            {!!fullDesc ? (
-              <DrawBox
-                fullDesc={fullDesc}
-                imageWidth={WIDTH}
-                boxColor={'blue'}
-              />
-            ) : null}
+            {!!drawBox ? drawBox : null}
           </div>
         </div>
       </div>
@@ -121,4 +175,4 @@ class CameraFaceDetect extends Component {
   }
 }
 
-export default withRouter(CameraFaceDetect);
+export default withRouter(VideoInput);
