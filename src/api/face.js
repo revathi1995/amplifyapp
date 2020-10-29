@@ -1,10 +1,15 @@
 import * as faceapi from 'face-api.js'
 
 export async function loadModels() {
-  const MODEL_URL = process.env.PUBLIC_URL + '/models';
-  await faceapi.loadTinyFaceDetectorModel(MODEL_URL);
-  await faceapi.loadFaceLandmarkTinyModel(MODEL_URL);
-  await faceapi.loadFaceRecognitionModel(MODEL_URL);
+  try {
+          await faceapi.nets.ssdMobilenetv1.loadFromUri('public/models');
+          await faceapi.nets.faceLandmark68Net.loadFromUri('public/models');
+          await faceapi.nets.faceRecognitionNet.loadFromUri('public/models');
+
+
+        } catch (error) {
+          console.log(error);
+        }
 }
 
 export async function getFullFaceDescription(blob, inputSize = 512) {
