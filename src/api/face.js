@@ -15,18 +15,18 @@ export async function loadModels() {
 export async function getFullFaceDescription(blob, inputSize = 512) {
 
   let scoreThreshold = 0.5;
-  const OPTION = new faceapi.TinyFaceDetectorOptions({
+  const OPTION = new faceapi.ssdMobilenetv1Options({
     inputSize,
     scoreThreshold
   });
-  const useTinyModel = true;
+  const usessdMobilenetv1Model = true;
 
 
   let img = await faceapi.fetchImage(blob);
 
   let fullDesc = await faceapi
     .detectAllFaces(img, OPTION)
-    .withFaceLandmarks(useTinyModel)
+    .withFaceLandmarks(usessdMobilenetv1Model)
     .withFaceDescriptors();
   return fullDesc;
 }
