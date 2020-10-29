@@ -2,7 +2,7 @@ import * as faceapi from 'face-api.js'
 
 export async function loadModels() {
   try {
-          //await faceapi.nets.TinyFaceDetector.loadFromUri('public/models');
+          await faceapi.nets.TinyFaceDetector.loadFromUri('public/models');
           await faceapi.nets.ssdMobilenetv1.loadFromUri('public/models');
           await faceapi.nets.faceLandmark68Net.loadFromUri('public/models');
           await faceapi.nets.faceRecognitionNet.loadFromUri('public/models');
